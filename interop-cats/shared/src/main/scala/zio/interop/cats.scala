@@ -185,7 +185,7 @@ private class CatsConcurrentEffect[R](rts: Runtime[R])
           )
           .interruptible
           .nonDaemon
-          .forkInternal
+          .fork
           .daemon
           .map(_.interrupt.unit)
       }

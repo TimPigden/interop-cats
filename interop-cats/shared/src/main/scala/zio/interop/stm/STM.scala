@@ -63,7 +63,6 @@ final class STM[F[+_], +A] private[stm] (private[stm] val underlying: ZSTM[Throw
   final def commit(implicit R: Runtime[Any], A: Async[F]): F[A] = STM.atomically(self)
 
   /**
-   * See [[zio.stm.STM#const]]
    */
   final def const[B](b: => B): STM[F, B] = self map (_ => b)
 
