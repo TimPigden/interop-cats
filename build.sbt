@@ -3,6 +3,8 @@ import explicitdeps.ExplicitDepsPlugin.autoImport.moduleFilterRemoveValue
 import sbtcrossproject.CrossPlugin.autoImport.crossProject
 
 name := "interop-cats"
+credentials += Credentials(Path.userHome / ".ivy2" / ".credentials.artifactory")
+resolvers +=  "Artifactory" at "https://office.optrak.com/artifactory/libs-release/"
 
 inThisBuild(
   List(
@@ -17,6 +19,7 @@ inThisBuild(
         url("http://degoes.net")
       )
     ),
+    resolvers +=  "Artifactory" at "https://office.optrak.com/artifactory/libs-release/",
     pgpPassphrase := sys.env.get("PGP_PASSWORD").map(_.toArray),
     pgpPublicRing := file("/tmp/public.asc"),
     pgpSecretRing := file("/tmp/secret.asc"),
@@ -30,20 +33,10 @@ ThisBuild / publishTo := sonatypePublishToBundle.value
 
 addCommandAlias("fmt", "all scalafmtSbt scalafmt test:scalafmt")
 addCommandAlias("check", "all scalafmtSbtCheck scalafmtCheck test:scalafmtCheck")
-addCommandAlias("testJVM", ";interopCatsJVM/test;coreOnlyTestJVM/test")
-addCommandAlias("testJS", ";interopCatsJS/test;coreOnlyTestJS/test")
 
-lazy val root = project
-  .in(file("."))
-  .enablePlugins(ScalaJSPlugin)
-  .aggregate(interopCatsJVM, interopCatsJS)
-  .settings(
-    skip in publish := true,
-    unusedCompileDependenciesFilter -= moduleFilter("org.scala-js", "scalajs-library")
-  )
 
-lazy val zioVersion = "1.0.0-RC17+166-0a7246c5"
-lazy val interopCats = crossProject(JSPlatform, JVMPlatform)
+lazy val zioVersion = "1.0.0-RC17+212-d64cda8b+20200115-1756"
+lazy val interopCats = crossProject(JVMPlatform)
   .in(file("interop-cats"))
   .enablePlugins(BuildInfoPlugin)
   .settings(stdSettings("zio-interop-cats"))
@@ -69,12 +62,8 @@ lazy val interopCats = crossProject(JSPlatform, JVMPlatform)
   .settings(testFrameworks += new TestFramework("zio.test.sbt.ZTestFramework"))
 
 lazy val interopCatsJVM = interopCats.jvm
-lazy val interopCatsJS = interopCats.js
-  .settings(
-    libraryDependencies += "io.github.cquiroz" %%% "scala-java-time" % "2.0.0-RC3" % Test
-  )
 
-lazy val coreOnlyTest = crossProject(JSPlatform, JVMPlatform)
+lazy val coreOnlyTest = crossProject(JVMPlatform)
   .in(file("core-only-test"))
   .dependsOn(interopCats)
   .settings(stdSettings("core-only-test"))
@@ -88,7 +77,3 @@ lazy val coreOnlyTest = crossProject(JSPlatform, JVMPlatform)
   .settings(testFrameworks += new TestFramework("zio.test.sbt.ZTestFramework"))
 
 lazy val coreOnlyTestJVM = coreOnlyTest.jvm
-lazy val coreOnlyTestJS = coreOnlyTest.js
-  .settings(
-    libraryDependencies += "io.github.cquiroz" %%% "scala-java-time" % "2.0.0-RC3" % Test
-  )
